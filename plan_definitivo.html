@@ -316,7 +316,7 @@ const dayData = [
       { time:'12:30', name:'Almuerzo', icon:'🍽️', foods:['150g pechuga de pollo con cúrcuma y pimienta negra','½ taza arroz integral cocido','½ aguacate','Ensalada grande: lechuga, tomate, pepino, zanahoria','Jugo de lulo natural sin azúcar'], p:44,c:52,f:16, tip:'Cúrcuma + pimienta negra: la curcumina se absorbe 2000% más con piperina. Antiinflamatorio visceral con evidencia sólida.' },
       { time:'16:00', name:'Merienda tarde', icon:'⚡', foods:['2 huevos duros','1 manzana o pera','10g queso parmesano'], p:16,c:20,f:10, tip:'Pre-ejercicio ligero. No sobrecargues el estómago — el gimnasio es en 2.5 horas.' },
       { time:'18:30', name:'Pre-gimnasio', icon:'🏋️', foods:['1 arepa pequeña','100g atún en agua escurrido','Mostaza o limón'], p:28,c:25,f:3, tip:'30–60 min antes de fuerza. Carbohidrato + proteína = combustible óptimo para pesas.' },
-      { time:'20:30', name:'Cena post-entreno', icon:'🌙', foods:['150g tilapia al horno con hierbas y limón','Ensalada grande con aceite de oliva (1 cdita)','½ taza quinoa cocida','Agua con limón'], p:38,c:30,f:12, tip:'Proteína alta de noche = síntesis muscular mientras duermes. Meta sueño: 7.5h hoy.' }
+      { time:'20:30', name:'Cena post-entreno', icon:'🌙', foods:['150g atún al horno con hierbas y limón','Ensalada grande con aceite de oliva (1 cdita)','½ taza quinoa cocida','Agua con limón'], p:38,c:30,f:12, tip:'Proteína alta de noche = síntesis muscular mientras duermes. Meta sueño: 7.5h hoy.' }
     ],
     cardio:{ name:'Caminata', emoji:'🚶', duration:'60 min · ritmo moderado', kcal:280, detail:'Bogotá 2.600 msnm: el mismo ritmo quema ~12% más que a nivel del mar. Hidratación: 500ml antes, 500ml durante.' },
     strength:'A'
@@ -338,10 +338,10 @@ const dayData = [
     meals:[
       { time:'6:45', name:'Desayuno', icon:'🌅', foods:['Omelet 3 huevos con champiñones, pimentón y cilantro','30g queso mozzarella derretido','1 tostada de pan integral','Café'], p:32,c:22,f:18, tip:'Los champiñones aportan vitamina D — importante en Bogotá donde la nubosidad reduce la síntesis solar.' },
       { time:'10:00', name:'Merienda', icon:'🌿', foods:['1 yogurt griego + mora o fresa','1 cdita semillas de chía'], p:16,c:18,f:4, tip:'La mora bogotana es una de las frutas con mayor concentración de antioxidantes del mundo. Aprovéchala.' },
-      { time:'12:30', name:'Almuerzo', icon:'🍽️', foods:['150g pechuga al horno con romero y ajo','½ taza quinoa cocida','Brócoli al vapor con aceite de oliva y limón','Ensalada verde mixta'], p:42,c:48,f:10, tip:'La quinoa se cultiva en Boyacá — proteína completa local. El brócoli tiene sulforafano: antiinflamatorio con evidencia en grasa visceral.' },
+      { time:'12:30', name:'Almuerzo', icon:'🍽️', foods:['150g pechuga al horno con romero y ajo','½ taza quinoa cocida','Espinaca salteada con ajo y aceite de oliva','Ensalada verde mixta'], p:42,c:48,f:10, tip:'La quinoa se cultiva en Boyacá — proteína completa local. El espinaca tiene sulforafano: antiinflamatorio con evidencia en grasa visceral.' },
       { time:'16:00', name:'Merienda', icon:'⚡', foods:['2 cdas mantequilla de maní natural','1 manzana'], p:10,c:22,f:14, tip:'Busca mantequilla de maní 100% sin aceites añadidos. Proteína + grasa = saciedad hasta el pre-gym.' },
       { time:'18:00', name:'Pre-gimnasio', icon:'🏋️', foods:['1 arepa + 80g pollo desmenuzado','Agua'], p:26,c:24,f:3, tip:'Mismo protocolo: carbohidrato + proteína 45 min antes de fuerza B.' },
-      { time:'20:30', name:'Cena', icon:'🌙', foods:['150g salmón o trucha al horno con limón y eneldo','Ensalada con zanahoria, remolacha y vinagreta mostaza','½ papa cocida mediana'], p:40,c:28,f:14, tip:'El salmón 2x por semana cubre gran parte de tu necesidad de Omega 3 animal. La trucha colombiana es igual de efectiva y más económica.' }
+      { time:'20:30', name:'Cena', icon:'🌙', foods:['150g atún al horno con limón y eneldo','Ensalada con zanahoria, tomate cherry y vinagreta mostaza','½ papa cocida mediana'], p:40,c:28,f:14, tip:'El salmón 2x por semana cubre gran parte de tu necesidad de Omega 3 animal. La trucha colombiana es igual de efectiva y más económica.' }
     ],
     cardio:null,
     strength:'B'
@@ -354,7 +354,7 @@ const dayData = [
       { time:'12:30', name:'Almuerzo', icon:'🍽️', foods:['150g atún + 2 huevos duros (proteína doble)','½ taza arroz integral','Ensalada con aguacate, tomate, pepino','Jugo de maracuyá sin azúcar'], p:50,c:48,f:14, tip:'Jueves es el día de mayor carga proteica. El cuerpo está en pico de síntesis post-entrenos de lunes y miércoles.' },
       { time:'16:00', name:'Merienda', icon:'⚡', foods:['1 yogurt griego','10 almendras','1 fruta pequeña'], p:16,c:16,f:8, tip:'' },
       { time:'19:00', name:'Pre-caminata', icon:'🚶', foods:['1 banano','Agua 500ml'], p:2,c:27,f:0, tip:'Caminata es cardio de baja intensidad. No necesitas comida pesada. El banano es suficiente.' },
-      { time:'21:00', name:'Cena post-caminata', icon:'🌙', foods:['150g pollo sudado con comino, cúrcuma y ajo','Ensalada de zanahoria y remolacha','½ taza lentejas','Agua con limón'], p:42,c:35,f:6, tip:'Lentejas + pollo = proteína completa y hierro. Cena reconstituyente después de la caminata larga.' }
+      { time:'21:00', name:'Cena post-caminata', icon:'🌙', foods:['150g pollo sudado con comino, cúrcuma y ajo','Ensalada de zanahoria y zanahoria','½ taza lentejas','Agua con limón'], p:42,c:35,f:6, tip:'Lentejas + pollo = proteína completa y hierro. Cena reconstituyente después de la caminata larga.' }
     ],
     cardio:{ name:'Caminata larga', emoji:'🚶', duration:'60 min · ritmo moderado-alto', kcal:300, detail:'Si es posible busca una ruta con algo de desnivel en Bogotá — incrementa el gasto calórico y trabaja glúteos y piernas.' },
     strength:null
