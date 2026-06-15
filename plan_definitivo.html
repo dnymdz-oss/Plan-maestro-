@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0F1A14">
+<title>Plan Maestro · Bogotá</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #0F1A14; --surf: #162014; --surf2: #1E2D1F;
+  --border: #2A3D2B; --green: #4ADE80; --greenDim: #166534;
+  --amber: #FCD34D; --amberDim: #92400E; --red: #F87171;
+  --blue: #60A5FA; --text: #F0FDF4; --muted: #86EFAC; --dim: #4B5563;
+}
+html { background: var(--bg); }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
+
+/* NAV */
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #0A1209; border-top: 1px solid var(--border); display: flex; z-index: 100; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px 12px; border: none; background: transparent; color: var(--dim); cursor: pointer; font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; transition: color 0.2s; }
+.nav-btn.active { color: var(--green); }
+.nav-btn svg { width: 22px; height: 22px; }
+
+/* HEADER */
+.header { background: linear-gradient(160deg,#0F2D18,#0F1A14); padding: 20px 16px 16px; }
+.header-eye { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--amber); margin-bottom: 4px; font-family: monospace; }
+.header-title { font-size: 22px; font-weight: 900; color: var(--green); letter-spacing: -0.5px; }
+.header-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.header-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.chip { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); border-radius: 6px; padding: 4px 10px; font-size: 10px; font-weight: 700; color: var(--green); }
+.chip.amber { background: rgba(252,211,77,0.1); border-color: rgba(252,211,77,0.25); color: var(--amber); }
+.chip.red { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.25); color: var(--red); }
+.chip.blue { background: rgba(96,165,250,0.1); border-color: rgba(96,165,250,0.25); color: var(--blue); }
+
+/* PAGES */
+.page { display: none; padding: 16px; }
+.page.active { display: block; }
+
+/* CARDS */
+.card { background: var(--surf); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.card-title { font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+/* DAY SELECTOR */
+.day-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
+.day-scroll::-webkit-scrollbar { display: none; }
+.day-pill { flex-shrink: 0; padding: 8px 14px; border-radius: 20px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; background: var(--surf); color: var(--muted); transition: all 0.2s; }
+.day-pill.active { background: var(--green); color: #0A1209; font-weight: 800; box-shadow: 0 0 14px rgba(74,222,128,0.35); }
+
+/* DAY HEADER */
+.day-hero { border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+.day-hero-name { font-size: 22px; font-weight: 900; }
+.day-hero-tag { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+.day-hero-kcal { text-align: right; }
+.day-hero-kcal-val { font-size: 24px; font-weight: 900; }
+.day-hero-kcal-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+
+/* MEAL CARDS */
+.meal-card { background: var(--surf); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; overflow: hidden; cursor: pointer; transition: border-color 0.2s; }
+.meal-card.open { border-color: var(--green); }
+.meal-card-header { display: flex; align-items: center; gap: 10px; padding: 13px 14px; }
+.meal-icon { font-size: 22px; flex-shrink: 0; }
+.meal-meta { flex: 1; }
+.meal-time { font-family: monospace; font-size: 10px; color: var(--amber); }
+.meal-name { font-size: 13px; font-weight: 700; margin-top: 1px; }
+.meal-preview { font-size: 11px; color: var(--dim); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+.meal-macros-mini { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.macro-mini { font-size: 10px; font-weight: 700; }
+.meal-body { padding: 0 14px 14px; border-top: 1px solid var(--border); }
+.food-item { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(42,61,43,0.5); font-size: 12px; }
+.food-item:last-child { border-bottom: none; }
+.food-bullet { color: var(--green); flex-shrink: 0; }
+.meal-tip { background: var(--bg); border-left: 3px solid var(--green); border-radius: 0 6px 6px 0; padding: 8px 10px; margin-top: 10px; font-size: 11px; color: var(--muted); line-height: 1.5; }
+.meal-macro-row { display: flex; gap: 6px; margin-top: 10px; }
+.macro-pill { flex: 1; border-radius: 8px; padding: 6px; text-align: center; }
+.macro-pill-val { font-size: 14px; font-weight: 800; }
+.macro-pill-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; margin-top: 1px; }
+
+/* EXERCISE SECTION */
+.ex-section-title { font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--amber); margin: 16px 0 8px; display: flex; align-items: center; gap: 8px; }
+.ex-section-title::after { content:''; flex:1; height:1px; background: var(--border); }
+.ex-card { background: var(--surf2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+.ex-card-main { display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; }
+.ex-emoji { font-size: 28px; flex-shrink: 0; }
+.ex-info { flex: 1; }
+.ex-name { font-size: 13px; font-weight: 700; }
+.ex-muscle { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.ex-badge { background: var(--greenDim); color: var(--green); border-radius: 8px; padding: 6px 10px; text-align: center; flex-shrink: 0; }
+.ex-badge-sets { font-size: 14px; font-weight: 900; font-family: monospace; }
+.ex-badge-rest { font-size: 9px; color: var(--muted); margin-top: 1px; }
+.ex-detail { padding: 0 14px 12px; border-top: 1px solid var(--border); display: none; }
+.ex-detail.open { display: block; }
+.ex-detail-note { font-size: 11px; color: var(--amber); margin-top: 8px; font-style: italic; line-height: 1.5; }
+.ex-detail-how { font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 6px; }
+
+/* CARDIO CARD */
+.cardio-card { background: var(--surf2); border-radius: 12px; padding: 14px; margin-bottom: 8px; display: flex; gap: 12px; align-items: center; }
+.cardio-left { font-size: 32px; }
+.cardio-info { flex: 1; }
+.cardio-name { font-size: 14px; font-weight: 700; }
+.cardio-detail { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+.cardio-kcal { text-align: right; }
+.cardio-kcal-val { font-size: 18px; font-weight: 800; color: var(--amber); }
+.cardio-kcal-lbl { font-size: 9px; color: var(--dim); }
+
+/* TOMORROW PREP */
+.prep-card { background: linear-gradient(135deg, #1A2E1C, #162014); border: 1px solid var(--green); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.prep-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.prep-title { font-size: 15px; font-weight: 800; color: var(--green); }
+.prep-day { font-size: 11px; color: var(--muted); }
+.prep-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(42,61,43,0.6); }
+.prep-item:last-child { border-bottom: none; }
+.prep-check { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border); flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: 1px; transition: all 0.15s; }
+.prep-check.done { background: var(--green); border-color: var(--green); }
+.prep-check.done::after { content: '✓'; color: #0A1209; font-size: 11px; font-weight: 900; }
+.prep-text { font-size: 12px; line-height: 1.5; flex: 1; }
+.prep-tag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+/* NOTIF BANNER */
+.notif-banner { background: rgba(252,211,77,0.1); border: 1px solid rgba(252,211,77,0.3); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; display: flex; gap: 10px; align-items: center; }
+.notif-banner svg { flex-shrink: 0; }
+.notif-text { font-size: 11px; color: var(--amber); line-height: 1.4; }
+.notif-btn { background: var(--amber); color: #0A1209; border: none; border-radius: 8px; padding: 6px 12px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+
+/* PROGRESS */
+.prog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.prog-stat { background: var(--surf); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+.prog-stat-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 6px; }
+.prog-stat-val { font-size: 28px; font-weight: 900; line-height: 1; }
+.prog-stat-unit { font-size: 12px; font-weight: 400; color: var(--muted); }
+.prog-stat-delta { font-size: 10px; margin-top: 4px; }
+.prog-stat-delta.pos { color: var(--green); }
+.prog-stat-delta.neg { color: var(--red); }
+.prog-stat-delta.neu { color: var(--dim); }
+
+/* FORM */
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: block; }
+.form-input { width: 100%; background: var(--surf2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 15px; font-family: inherit; outline: none; transition: border-color 0.2s; }
+.form-input:focus { border-color: var(--green); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-primary { width: 100%; background: var(--green); color: #0A1209; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.2s; }
+.btn-primary:active { opacity: 0.8; }
+
+/* MOOD */
+.mood-row { display: flex; gap: 8px; }
+.mood-btn { flex: 1; background: var(--surf2); border: 2px solid var(--border); border-radius: 10px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.15s; }
+.mood-btn.selected { border-color: var(--green); background: rgba(74,222,128,0.1); }
+.mood-btn-emoji { font-size: 22px; }
+.mood-btn-lbl { font-size: 9px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* PROGRESS LOG */
+.log-entry { background: var(--surf); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
+.log-date { font-family: monospace; font-size: 10px; color: var(--amber); margin-bottom: 6px; }
+.log-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+.log-key { color: var(--muted); }
+.log-val { font-weight: 700; }
+
+/* MACRO PROGRESS BAR */
+.macro-track { margin-bottom: 10px; }
+.macro-track-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
+.macro-track-bar { height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; }
+.macro-track-fill { height: 100%; border-radius: 999px; transition: width 0.4s; }
+
+/* WORKOUT CHECK */
+.workout-check-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.workout-check-row:last-child { border-bottom: none; }
+.wc-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border); flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.wc-check.done { background: var(--green); border-color: var(--green); }
+.wc-check.done::after { content: '✓'; color: #0A1209; font-size: 12px; font-weight: 900; }
+.wc-name { flex: 1; font-size: 13px; font-weight: 600; }
+.wc-sets { font-family: monospace; font-size: 11px; color: var(--amber); }
+
+/* TIMER */
+.timer-box { background: var(--surf2); border-radius: 12px; padding: 16px; text-align: center; margin-top: 10px; display: none; }
+.timer-display { font-size: 48px; font-weight: 900; font-family: monospace; color: var(--green); }
+.timer-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
+.timer-btn { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; color: var(--text); font-size: 12px; cursor: pointer; margin-top: 10px; }
+
+/* EMPTY STATE */
+.empty { text-align: center; padding: 40px 20px; color: var(--dim); }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-text { font-size: 13px; line-height: 1.6; }
+
+/* SECTION DIVIDER */
+.divider { display: flex; align-items: center; gap: 10px; margin: 20px 0 12px; }
+.divider-line { flex: 1; height: 1px; background: var(--border); }
+.divider-text { font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+
+/* SCROLL FIX */
+.scroll-container { overflow-x: auto; scrollbar-width: none; }
+.scroll-container::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-eye">Plan Maestro · Bogotá 2.600 msnm</div>
+  <div class="header-title">CUERPO POR DISEÑO</div>
+  <div class="header-sub">39 años · 79 kg · 179 cm · Recomposición corporal</div>
+  <div class="header-chips">
+    <span class="chip">22.8% grasa</span>
+    <span class="chip amber">2.075 kcal/día</span>
+    <span class="chip red">155g proteína</span>
+    <span class="chip blue">20 semanas</span>
+  </div>
+</div>
+
+<!-- PAGES -->
+
+<!-- ══ HOY ══ -->
+<div class="page active" id="page-hoy">
+  <div class="day-scroll" id="dayScroll">
+    <button class="day-pill active" onclick="selectDay(0,this)">Lun</button>
+    <button class="day-pill" onclick="selectDay(1,this)">Mar</button>
+    <button class="day-pill" onclick="selectDay(2,this)">Mié</button>
+    <button class="day-pill" onclick="selectDay(3,this)">Jue</button>
+    <button class="day-pill" onclick="selectDay(4,this)">Vie</button>
+    <button class="day-pill" onclick="selectDay(5,this)">Sáb</button>
+    <button class="day-pill" onclick="selectDay(6,this)">Dom</button>
+  </div>
+  <div id="dayContent"></div>
+</div>
+
+<!-- ══ MAÑANA ══ -->
+<div class="page" id="page-manana">
+  <div id="tomorrowContent"></div>
+</div>
+
+<!-- ══ EJERCICIO ══ -->
+<div class="page" id="page-ejercicio">
+  <div id="exerciseContent"></div>
+</div>
+
+<!-- ══ PROGRESO ══ -->
+<div class="page" id="page-progreso">
+
+  <div class="notif-banner" id="notifBanner">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <div class="notif-text">Activa las notificaciones para recibir el recordatorio nocturno de preparación del día siguiente.</div>
+    <button class="notif-btn" onclick="requestNotif()">Activar</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Registrar esta semana</div>
+    <div class="form-group">
+      <label class="form-label">Peso (kg)</label>
+      <input class="form-input" type="number" id="inp-peso" placeholder="79.0" step="0.1">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Cintura (cm)</label>
+        <input class="form-input" type="number" id="inp-cintura" placeholder="88" step="0.5">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Energía 1–10</label>
+        <input class="form-input" type="number" id="inp-energia" placeholder="7" min="1" max="10">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Estado de ánimo</label>
+      <div class="mood-row" id="moodRow">
+        <div class="mood-btn" onclick="selectMood('😔','Bajo',this)"><div class="mood-btn-emoji">😔</div><div class="mood-btn-lbl">Bajo</div></div>
+        <div class="mood-btn" onclick="selectMood('😐','Regular',this)"><div class="mood-btn-emoji">😐</div><div class="mood-btn-lbl">Regular</div></div>
+        <div class="mood-btn" onclick="selectMood('🙂','Bien',this)"><div class="mood-btn-emoji">🙂</div><div class="mood-btn-lbl">Bien</div></div>
+        <div class="mood-btn" onclick="selectMood('😄','Excelente',this)"><div class="mood-btn-emoji">😄</div><div class="mood-btn-lbl">Excelente</div></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nota (opcional)</label>
+      <input class="form-input" type="text" id="inp-nota" placeholder="Cómo te fue esta semana...">
+    </div>
+    <button class="btn-primary" onclick="saveEntry()">Guardar registro</button>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-text">Historial</div><div class="divider-line"></div></div>
+  <div id="logContainer">
+    <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Aún no hay registros.<br>Empieza hoy.</div></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="showPage('hoy',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Hoy
+  </button>
+  <button class="nav-btn" onclick="showPage('manana',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+    Mañana
+  </button>
+  <button class="nav-btn" onclick="showPage('ejercicio',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+    Ejercicio
+  </button>
+  <button class="nav-btn" onclick="showPage('progreso',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+    Progreso
+  </button>
+</nav>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const DAYS_SHORT = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+const dayData = [
+  // LUNES
+  { day:'Lunes', tag:'Fuerza A + Caminata', tagColor:'#F87171', bgGrad:'#2D1515', kcal:2075,
+    meals:[
+      { time:'6:45', name:'Desayuno', icon:'🌅', foods:['2 huevos revueltos con espinaca y ajo','1 arepa de maíz pequeña (80g)','30g queso campesino rallado','Café negro o con pizca de leche','1 mandarina o fruta de temporada'], p:28,c:32,f:14, tip:'El queso campesino aporta calcio y proteína sin caer pesado. El ajo + espinaca: hierro y antiinflamatorio natural.' },
+      { time:'10:00', name:'Merienda', icon:'🌿', foods:['1 yogurt griego natural sin azúcar (150g)','20g nueces o almendras','½ banano'], p:18,c:22,f:12, tip:'Las nueces tienen Omega 3 vegetal antiinflamatorio. El yogurt griego aporta el doble de proteína que el yogurt normal.' },
+      { time:'12:30', name:'Almuerzo', icon:'🍽️', foods:['150g pechuga de pollo con cúrcuma y pimienta negra','½ taza arroz integral cocido','½ aguacate','Ensalada grande: lechuga, tomate, pepino, zanahoria','Jugo de lulo natural sin azúcar'], p:44,c:52,f:16, tip:'Cúrcuma + pimienta negra: la curcumina se absorbe 2000% más con piperina. Antiinflamatorio visceral con evidencia sólida.' },
+      { time:'16:00', name:'Merienda tarde', icon:'⚡', foods:['2 huevos duros','1 manzana o pera','10g queso parmesano'], p:16,c:20,f:10, tip:'Pre-ejercicio ligero. No sobrecargues el estómago — el gimnasio es en 2.5 horas.' },
+      { time:'18:30', name:'Pre-gimnasio', icon:'🏋️', foods:['1 arepa pequeña','100g atún en agua escurrido','Mostaza o limón'], p:28,c:25,f:3, tip:'30–60 min antes de fuerza. Carbohidrato + proteína = combustible óptimo para pesas.' },
+      { time:'20:30', name:'Cena post-entreno', icon:'🌙', foods:['150g tilapia al horno con hierbas y limón','Ensalada grande con aceite de oliva (1 cdita)','½ taza quinoa cocida','Agua con limón'], p:38,c:30,f:12, tip:'Proteína alta de noche = síntesis muscular mientras duermes. Meta sueño: 7.5h hoy.' }
+    ],
+    cardio:{ name:'Caminata', emoji:'🚶', duration:'60 min · ritmo moderado', kcal:280, detail:'Bogotá 2.600 msnm: el mismo ritmo quema ~12% más que a nivel del mar. Hidratación: 500ml antes, 500ml durante.' },
+    strength:'A'
+  },
+  // MARTES
+  { day:'Martes', tag:'Bicicleta indoor', tagColor:'#FCD34D', bgGrad:'#2D2515', kcal:2075,
+    meals:[
+      { time:'6:45', name:'Desayuno', icon:'🌅', foods:['½ taza avena en hojuelas cocida en agua','1 banano troceado encima','2 claras de huevo revueltas','Café'], p:22,c:58,f:4, tip:'Beta-glucanos de la avena: saciedad de 3–4 horas. Ideal para mañanas largas de oficina sin tentación.' },
+      { time:'10:00', name:'Merienda', icon:'🌿', foods:['30g frutos secos (almendras, nueces, maní natural)','1 guayaba o maracuyá'], p:8,c:18,f:14, tip:'La guayaba colombiana tiene más vitamina C que la naranja. Las frutas tropicales locales son tu ventaja nutricional.' },
+      { time:'12:30', name:'Almuerzo', icon:'🍽️', foods:['150g carne magra (lomo o muchacho) sudada','½ taza frijoles rojos o negros','⅓ taza arroz blanco','2 tajadas plátano maduro','Ensalada de repollo con limón'], p:46,c:55,f:10, tip:'Frijol + arroz = proteína vegetal completa. El plátano maduro tiene potasio clave para la función muscular.' },
+      { time:'16:30', name:'Pre-bicicleta', icon:'🚴', foods:['1 banano','1 yogurt griego pequeño (100g)'], p:12,c:32,f:2, tip:'El banano es el pre-entreno más efectivo y natural. Potasio + carbohidrato de digestión media.' },
+      { time:'19:30', name:'Cena', icon:'🌙', foods:['2 huevos pochados','50g queso campesino o costeño en cubos','Tomate cherry y pepino','1 arepa integral o de chócolo','¼ aguacate'], p:30,c:28,f:18, tip:'Cena mediterránea simple. Alta proteína, grasas buenas, carbos moderados. Favorece quema de grasa nocturna.' }
+    ],
+    cardio:{ name:'Bicicleta indoor', emoji:'🚴', duration:'40–50 min · Zona 2', kcal:350, detail:'Zona 2 = puedes hablar pero con esfuerzo. Es la zona que más oxida grasa. No vayas a tope — el objetivo es resistencia aeróbica.' },
+    strength:null
+  },
+  // MIÉRCOLES
+  { day:'Miércoles', tag:'Fuerza B', tagColor:'#60A5FA', bgGrad:'#15202D', kcal:2075,
+    meals:[
+      { time:'6:45', name:'Desayuno', icon:'🌅', foods:['Omelet 3 huevos con champiñones, pimentón y cilantro','30g queso mozzarella derretido','1 tostada de pan integral','Café'], p:32,c:22,f:18, tip:'Los champiñones aportan vitamina D — importante en Bogotá donde la nubosidad reduce la síntesis solar.' },
+      { time:'10:00', name:'Merienda', icon:'🌿', foods:['1 yogurt griego + mora o fresa','1 cdita semillas de chía'], p:16,c:18,f:4, tip:'La mora bogotana es una de las frutas con mayor concentración de antioxidantes del mundo. Aprovéchala.' },
+      { time:'12:30', name:'Almuerzo', icon:'🍽️', foods:['150g pechuga al horno con romero y ajo','½ taza quinoa cocida','Brócoli al vapor con aceite de oliva y limón','Ensalada verde mixta'], p:42,c:48,f:10, tip:'La quinoa se cultiva en Boyacá — proteína completa local. El brócoli tiene sulforafano: antiinflamatorio con evidencia en grasa visceral.' },
+      { time:'16:00', name:'Merienda', icon:'⚡', foods:['2 cdas mantequilla de maní natural','1 manzana'], p:10,c:22,f:14, tip:'Busca mantequilla de maní 100% sin aceites añadidos. Proteína + grasa = saciedad hasta el pre-gym.' },
+      { time:'18:00', name:'Pre-gimnasio', icon:'🏋️', foods:['1 arepa + 80g pollo desmenuzado','Agua'], p:26,c:24,f:3, tip:'Mismo protocolo: carbohidrato + proteína 45 min antes de fuerza B.' },
+      { time:'20:30', name:'Cena', icon:'🌙', foods:['150g salmón o trucha al horno con limón y eneldo','Ensalada con zanahoria, remolacha y vinagreta mostaza','½ papa cocida mediana'], p:40,c:28,f:14, tip:'El salmón 2x por semana cubre gran parte de tu necesidad de Omega 3 animal. La trucha colombiana es igual de efectiva y más económica.' }
+    ],
+    cardio:null,
+    strength:'B'
+  },
+  // JUEVES
+  { day:'Jueves', tag:'Caminata larga', tagColor:'#4ADE80', bgGrad:'#152D1A', kcal:2075,
+    meals:[
+      { time:'6:45', name:'Desayuno', icon:'🌅', foods:['2 huevos revueltos con tomate y cebolla','½ aguacate','1 arepa de maíz','Café'], p:24,c:28,f:18, tip:'El aguacate en el desayuno reduce el pico de glucosa de los carbohidratos. Te mantiene estable sin ansiedad hasta el almuerzo.' },
+      { time:'10:00', name:'Merienda', icon:'🌿', foods:['1 banano + 20g nueces','Agua o agua de coco natural'], p:6,c:30,f:10, tip:'El agua de coco natural es hidratación con electrolitos. Útil si ayer hiciste fuerza intensa.' },
+      { time:'12:30', name:'Almuerzo', icon:'🍽️', foods:['150g atún + 2 huevos duros (proteína doble)','½ taza arroz integral','Ensalada con aguacate, tomate, pepino','Jugo de maracuyá sin azúcar'], p:50,c:48,f:14, tip:'Jueves es el día de mayor carga proteica. El cuerpo está en pico de síntesis post-entrenos de lunes y miércoles.' },
+      { time:'16:00', name:'Merienda', icon:'⚡', foods:['1 yogurt griego','10 almendras','1 fruta pequeña'], p:16,c:16,f:8, tip:'' },
+      { time:'19:00', name:'Pre-caminata', icon:'🚶', foods:['1 banano','Agua 500ml'], p:2,c:27,f:0, tip:'Caminata es cardio de baja intensidad. No necesitas comida pesada. El banano es suficiente.' },
+      { time:'21:00', name:'Cena post-caminata', icon:'🌙', foods:['150g pollo sudado con comino, cúrcuma y ajo','Ensalada de zanahoria y remolacha','½ taza lentejas','Agua con limón'], p:42,c:35,f:6, tip:'Lentejas + pollo = proteína completa y hierro. Cena reconstituyente después de la caminata larga.' }
+    ],
+    cardio:{ name:'Caminata larga', emoji:'🚶', duration:'60 min · ritmo moderado-alto', kcal:300, detail:'Si es posible busca una ruta con algo de desnivel en Bogotá — incrementa el gasto calórico y trabaja glúteos y piernas.' },
+    strength:null
+  },
+  // VIERNES
+  { day:'Viernes', tag:'Fuerza A + cardio suave', tagColor:'#F87171', bgGrad:'#2D1515', kcal:2075,
+    meals:[
+      { time:'6:45', name:'Desayuno', icon:'🌅', foods:['Avena con banano y 1 cda maní natural','2 huevos duros aparte','Café'], p:24,c:55,f:10, tip:'Viernes necesitas energía — semana larga de oficina y fuerza A en la noche. La avena da reserva glucémica sostenida.' },
+      { time:'10:00', name:'Merienda', icon:'🌿', foods:['Mezcla de frutos secos 30g','1 guayaba o mango pequeño'], p:8,c:22,f:14, tip:'' },
+      { time:'12:30', name:'Almuerzo', icon:'🍽️', foods:['150g carne magra o pollo','Arroz con frijoles o lentejas','Ensalada con aguacate','Jugo natural sin azúcar'], p:44,c:55,f:14, tip:'Almuerzo sólido antes del fin de semana. Mantén las proporciones del plato.' },
+      { time:'15:30', name:'Pre-gimnasio', icon:'🏋️', foods:['2 huevos duros','1 arepa pequeña'], p:18,c:24,f:8, tip:'Pre-entreno de fuerza A — mismo esquema que lunes. Consistencia = resultados.' },
+      { time:'20:30', name:'Cena', icon:'🌙', foods:['2 huevos + 50g queso campesino','Ensalada grande','½ aguacate','Agua con limón'], p:28,c:12,f:20, tip:'Viernes — cena baja en carbos. Mañana descanso de intensidad. El cuerpo no necesita recarga de glucógeno nocturna.' }
+    ],
+    cardio:{ name:'Cardio suave opcional', emoji:'🏃', duration:'20 min caminata post-gym', kcal:120, detail:'Solo si tienes energía después del gimnasio. No te fuerces — la recuperación es parte del progreso.' },
+    strength:'A'
+  },
+  // SÁBADO
+  { day:'Sábado', tag:'🏊 Natación + Día flexible', tagColor:'#60A5FA', bgGrad:'#15202D', kcal:2200,
+    meals:[
+      { time:'7:00', name:'Pre-natación', icon:'🏊', foods:['1 banano','1 yogurt griego (100g)','500ml agua antes de entrar'], p:14,c:30,f:2, tip:'Las piscinas climatizadas de Bogotá engañan: no sientes sed pero te deshidratas igual. Hidratación antes de entrar es obligatoria.' },
+      { time:'9:30', name:'Post-natación ⭐', icon:'🔋', foods:['3 huevos revueltos con queso y tomate','1 arepa o 2 tostadas integrales','½ aguacate','Jugo de naranja natural'], p:34,c:38,f:18, tip:'La comida más importante de la semana. La natación en altitud quema 500–600 kcal. Tienes 45 min de ventana anabólica — no la desperdicies.' },
+      { time:'13:00', name:'Comida libre 🎉', icon:'🍽️', foods:['Elige lo que quieras — hamburguesa, pizza, sancocho','Acompáñalo con agua o jugo natural, nunca soda','Come despacio y para cuando estés satisfecho'], p:35,c:60,f:20, tip:'El "refeed" semanal resetea la leptina y evita la adaptación metabólica al déficit. La ciencia lo respalda. Disfrútalo sin culpa.' },
+      { time:'16:30', name:'Merienda', icon:'🌿', foods:['Fruta picada (papaya, mango, piña, sandía)','30g frutos secos'], p:6,c:30,f:10, tip:'' },
+      { time:'20:00', name:'Cena', icon:'🌙', foods:['150g proteína (pollo, huevo, atún)','Ensalada grande','Sin carbohidrato pesado esta noche'], p:36,c:15,f:10, tip:'Compensa el almuerzo libre con cena proteica y liviana. El balance semanal es lo que importa.' }
+    ],
+    cardio:{ name:'Natación', emoji:'🏊', duration:'1 hora · ritmo libre', kcal:560, detail:'La actividad más completa del plan. A 2.600 msnm el cuerpo trabaja más para oxigenar. Hidratación antes y después es crítica.' },
+    strength:null
+  },
+  // DOMINGO
+  { day:'Domingo', tag:'Recuperación total', tagColor:'#86EFAC', bgGrad:'#1A1A1A', kcal:2100,
+    meals:[
+      { time:'8:00', name:'Desayuno', icon:'☀️', foods:['Omelet 3 huevos con lo que haya','Queso, aguacate, tomate','1 café con calma','1 fruta'], p:30,c:20,f:20, tip:'Domingo sin presión. Come tranquilo, mastica bien — la digestión empieza en la boca. El sistema nervioso en calma mejora la absorción.' },
+      { time:'13:00', name:'Almuerzo familiar', icon:'🏠', foods:['Come con la familia lo que se prepare','Prioriza la proteína del plato','Reduce el arroz si hay postre','Disfruta — la mesa familiar es parte de la salud'], p:38,c:50,f:15, tip:'La ciencia del comportamiento muestra que comer en familia mejora adherencia a hábitos saludables a largo plazo. No te aisles de la mesa.' },
+      { time:'16:30', name:'Merienda', icon:'🌿', foods:['Yogurt griego + frutos secos + fruta'], p:16,c:20,f:10, tip:'' },
+      { time:'20:00', name:'Cena', icon:'🌙', foods:['Sopa de verduras con pollo desmenuzado (sin crema)','1 arepa pequeña o pan integral','Agua con limón'], p:28,c:25,f:5, tip:'Domingo termina con cena ligera y reconfortante. El lunes el ciclo vuelve — el cuerpo lo agradece con energía.' }
+    ],
+    cardio:{ name:'Descanso activo', emoji:'🧘', duration:'Opcional: caminata suave 30 min', kcal:0, detail:'El descanso es parte del plan, no su ausencia. Los músculos crecen durante la recuperación, no durante el ejercicio.' },
+    strength:null
+  }
+];
+
+const strengthA = [
+  { emoji:'🦵', name:'Sentadilla', sets:'4×10', rest:'90 seg', muscle:'Cuádriceps, glúteos, core', note:'Semanas 1-2 sin peso extra. Desciende hasta que los muslos queden paralelos al suelo. Las rodillas siguen la dirección de los pies.', how:'Pies al ancho de hombros, pies ligeramente abiertos. Baja controlado 3 segundos, sube explosivo 1 segundo.' },
+  { emoji:'💪', name:'Press de banca / Flexiones lastradas', sets:'4×10', rest:'90 seg', muscle:'Pecho, tríceps, hombro anterior', note:'Sin banca: flexiones con mochila con 5-10kg. Es igual de efectivo.', how:'Baja el pecho hasta casi tocar la banca o el suelo. Codos a 45° del cuerpo — no abras los brazos completamente.' },
+  { emoji:'🏋️', name:'Remo con mancuerna', sets:'3×12', rest:'60 seg', muscle:'Espalda, bíceps, trapecio', note:'Una mano apoyada en banco o rodilla. Espalda recta, paralela al suelo.', how:'Lleva el codo hacia el techo, no hacia afuera. Aprieta la escápula al final del movimiento. Baja controlado.' },
+  { emoji:'🔥', name:'Plancha frontal', sets:'4×40 seg', rest:'45 seg', muscle:'Core, abdomen profundo, diafragma', note:'El ejercicio más eficiente para grasa abdominal según estudios de electromiografía. Directo al problema.', how:'Codos bajo los hombros. Cuerpo recto como tabla. Aprieta el abdomen como si fueras a recibir un golpe. Respira.' },
+  { emoji:'🦶', name:'Elevación de talones', sets:'3×15', rest:'45 seg', muscle:'Gemelos, soleo', note:'Puedes hacerlo con mancuernas o en una máquina. Añade peso progresivamente.', how:'Sube hasta la punta del pie completamente. Mantén 1 segundo arriba. Baja lento y completo para el estiramiento.' }
+];
+
+const strengthB = [
+  { emoji:'⚡', name:'Peso muerto', sets:'4×8', rest:'120 seg', muscle:'Cadena posterior, glúteos, espalda baja, trapecio', note:'El ejercicio más completo del cuerpo. Aprende la técnica ANTES de añadir peso significativo. Nunca redondees la espalda.', how:'Barra sobre el mediopié. Agarre al ancho de hombros. Espalda recta, pecho hacia afuera, empuja el suelo hacia abajo.' },
+  { emoji:'🎯', name:'Press militar de pie', sets:'4×10', rest:'90 seg', muscle:'Deltoides, trapecio, tríceps, core', note:'De pie activa más core y estabilizadores que sentado. Comienza con peso ligero.', how:'Barra a la altura del mentón. Empuja hacia arriba y ligeramente atrás. Bloquea los codos arriba. Baja controlado.' },
+  { emoji:'🦅', name:'Jalón al pecho / Dominadas asistidas', sets:'3×10', rest:'90 seg', muscle:'Dorsal ancho, bíceps, romboides', note:'La dominada es el ejercicio de espalda más efectivo. Si no puedes, usa la máquina de jalón o banda elástica.', how:'Agarre al ancho de hombros o un poco más. Lleva el pecho a la barra/polea. Codos hacia las caderas, no hacia atrás.' },
+  { emoji:'🚀', name:'Zancadas caminando', sets:'3×12 c/pierna', rest:'60 seg', muscle:'Cuádriceps, glúteos, equilibrio, estabilidad', note:'Sin peso las primeras semanas. Añade mancuernas cuando el movimiento sea fluido y controlado.', how:'Paso largo hacia adelante. Rodilla trasera casi toca el suelo. Rodilla delantera no pasa la punta del pie. Sube empujando el talón.' },
+  { emoji:'⬡', name:'Plancha lateral', sets:'3×30 seg c/lado', rest:'45 seg', muscle:'Oblicuos, core lateral, cuadrado lumbar', note:'Directo al objetivo: grasa abdominal lateral y oblicuos. Completa ambos lados antes de descansar.', how:'Cuerpo recto de cabeza a pies. Cadera arriba — no la dejes caer. La mano libre puede ir en la cadera o extendida.' }
+];
+
+// ── STATE ─────────────────────────────────────────────────────
+let currentDay = 0;
+let selectedMood = null;
+let openMeals = {};
+let openExercises = {};
+let workoutDone = {};
+let timerInterval = null;
+let timerSeconds = 0;
+
+// ── STORAGE ───────────────────────────────────────────────────
+function saveData(key, val) { try { localStorage.setItem('pm_'+key, JSON.stringify(val)); } catch(e){} }
+function loadData(key, def) { try { const v=localStorage.getItem('pm_'+key); return v?JSON.parse(v):def; } catch(e){ return def; } }
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='manana') renderTomorrow();
+  if(id==='ejercicio') renderExercise();
+  if(id==='progreso') renderLog();
+}
+
+// ── DAY SELECTION ─────────────────────────────────────────────
+function selectDay(idx, btn) {
+  currentDay = idx;
+  openMeals = {};
+  document.querySelectorAll('.day-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDay();
+}
+
+function renderDay() {
+  const d = dayData[currentDay];
+  let html = '';
+
+  // Day hero
+  html += `<div class="day-hero" style="background:linear-gradient(135deg,${d.bgGrad},#162014);border:1px solid ${d.tagColor}33">
+    <div>
+      <div class="day-hero-name">${d.day}</div>
+      <div class="day-hero-tag" style="color:${d.tagColor}">${d.tag}</div>
+    </div>
+    <div class="day-hero-kcal">
+      <div class="day-hero-kcal-val" style="color:${d.tagColor}">${d.kcal}</div>
+      <div class="day-hero-kcal-lbl">kcal objetivo</div>
+    </div>
+  </div>`;
+
+  // Meals
+  html += `<div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">🍽️ Plan de comidas</div>`;
+  d.meals.forEach((m,i) => {
+    const isOpen = openMeals[i];
+    const preview = m.foods[0] ? m.foods[0].substring(0,40)+'…' : '';
+    html += `<div class="meal-card${isOpen?' open':''}" onclick="toggleMeal(${i})">
+      <div class="meal-card-header">
+        <div class="meal-icon">${m.icon}</div>
+        <div class="meal-meta">
+          <div class="meal-time">${m.time}</div>
+          <div class="meal-name">${m.name}</div>
+          ${!isOpen?`<div class="meal-preview">${preview}</div>`:''}
+        </div>
+        <div class="meal-macros-mini">
+          ${m.p>0?`<div class="macro-mini" style="color:#F87171">${m.p}g P</div>`:''}
+          ${m.c>0?`<div class="macro-mini" style="color:#FCD34D">${m.c}g C</div>`:''}
+        </div>
+        <div style="color:var(--dim);font-size:11px;margin-left:4px">${isOpen?'▲':'▼'}</div>
+      </div>
+      ${isOpen?`<div class="meal-body">
+        ${m.foods.map(f=>`<div class="food-item"><span class="food-bullet">›</span><span>${f}</span></div>`).join('')}
+        ${m.tip?`<div class="meal-tip">💡 ${m.tip}</div>`:''}
+        ${m.p>0?`<div class="meal-macro-row">
+          <div class="macro-pill" style="background:rgba(248,113,113,0.15)"><div class="macro-pill-val" style="color:#F87171">${m.p}g</div><div class="macro-pill-lbl">Proteína</div></div>
+          <div class="macro-pill" style="background:rgba(252,211,77,0.15)"><div class="macro-pill-val" style="color:#FCD34D">${m.c}g</div><div class="macro-pill-lbl">Carbos</div></div>
+          <div class="macro-pill" style="background:rgba(74,222,128,0.15)"><div class="macro-pill-val" style="color:#4ADE80">${m.f}g</div><div class="macro-pill-lbl">Grasas</div></div>
+        </div>`:''}
+      </div>`:''}
+    </div>`;
+  });
+
+  // Cardio
+  if(d.cardio) {
+    html += `<div class="ex-section-title">Cardio del día</div>
+    <div class="cardio-card" style="border:1px solid var(--border)">
+      <div class="cardio-left">${d.cardio.emoji}</div>
+      <div class="cardio-info">
+        <div class="cardio-name">${d.cardio.name}</div>
+        <div class="cardio-detail">${d.cardio.duration}</div>
+        <div class="cardio-detail" style="margin-top:4px;color:var(--dim)">${d.cardio.detail}</div>
+      </div>
+      <div class="cardio-kcal">
+        <div class="cardio-kcal-val">${d.cardio.kcal>0?'~'+d.cardio.kcal:'-'}</div>
+        <div class="cardio-kcal-lbl">${d.cardio.kcal>0?'kcal':'descanso'}</div>
+      </div>
+    </div>`;
+  }
+
+  // Strength workout checks
+  if(d.strength) {
+    const routine = d.strength==='A'?strengthA:strengthB;
+    html += `<div class="ex-section-title">Fuerza Rutina ${d.strength} · 7–9PM</div>
+    <div class="card" style="padding:12px 14px">`;
+    const wdKey = `${currentDay}_${d.strength}`;
+    routine.forEach((ex,i) => {
+      const done = (workoutDone[wdKey]||{})[i];
+      html += `<div class="workout-check-row">
+        <div class="wc-check${done?' done':''}" onclick="toggleWorkout('${wdKey}',${i},this)"></div>
+        <div class="wc-name">${ex.emoji} ${ex.name}</div>
+        <div class="wc-sets">${ex.sets}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  document.getElementById('dayContent').innerHTML = html;
+}
+
+function toggleMeal(i) {
+  openMeals[i] = !openMeals[i];
+  renderDay();
+}
+
+function toggleWorkout(key, i, el) {
+  if(!workoutDone[key]) workoutDone[key]={};
+  workoutDone[key][i] = !workoutDone[key][i];
+  saveData('workout',workoutDone);
+  el.classList.toggle('done');
+}
+
+// ── TOMORROW PREP ─────────────────────────────────────────────
+function renderTomorrow() {
+  const todayIdx = new Date().getDay();
+  const jsToMon = [6,0,1,2,3,4,5];
+  const todayMon = jsToMon[todayIdx];
+  const tomorrowIdx = (todayMon+1)%7;
+  const tmw = dayData[tomorrowIdx];
+
+  const prepItems = generatePrepItems(tmw);
+
+  let savedChecks = loadData('prepChecks_'+tomorrowIdx, {});
+
+  let html = `
+  <div class="notif-banner" style="border-color:rgba(74,222,128,0.4);background:rgba(74,222,128,0.08)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+    <div class="notif-text" style="color:var(--green)">Prepara esto <strong>hoy en la noche</strong> para que mañana sea más fácil seguir el plan.</div>
+  </div>
+  <div class="prep-card">
+    <div class="prep-header">
+      <div>
+        <div class="prep-title">Mañana: ${tmw.day}</div>
+        <div class="prep-day" style="color:${tmw.tagColor}">${tmw.tag}</div>
+      </div>
+      <div style="font-size:20px">${tmw.cardio?tmw.cardio.emoji:''}</div>
+    </div>`;
+
+  prepItems.forEach((item,i) => {
+    const done = savedChecks[i];
+    html += `<div class="prep-item">
+      <div class="prep-check${done?' done':''}" onclick="togglePrep(${tomorrowIdx},${i},this)"></div>
+      <div>
+        <div class="prep-text">${item.text}</div>
+        <div class="prep-tag" style="color:${item.color}">${item.tag}</div>
+      </div>
+    </div>`;
+  });
+
+  html += `</div>`;
+
+  // Macros de mañana
+  const totP = tmw.meals.reduce((s,m)=>s+m.p,0);
+  const totC = tmw.meals.reduce((s,m)=>s+m.c,0);
+  const totF = tmw.meals.reduce((s,m)=>s+m.f,0);
+
+  html += `<div class="card">
+    <div class="card-title">Macros de mañana</div>
+    <div class="macro-track">
+      <div class="macro-track-header"><span style="color:#F87171">Proteína</span><span>${totP}g / 155g</span></div>
+      <div class="macro-track-bar"><div class="macro-track-fill" style="width:${Math.min(100,totP/155*100)}%;background:#F87171"></div></div>
+    </div>
+    <div class="macro-track">
+      <div class="macro-track-header"><span style="color:#FCD34D">Carbohidratos</span><span>${totC}g / 205g</span></div>
+      <div class="macro-track-bar"><div class="macro-track-fill" style="width:${Math.min(100,totC/205*100)}%;background:#FCD34D"></div></div>
+    </div>
+    <div class="macro-track">
+      <div class="macro-track-header"><span style="color:#4ADE80">Grasas</span><span>${totF}g / 70g</span></div>
+      <div class="macro-track-bar"><div class="macro-track-fill" style="width:${Math.min(100,totF/70*100)}%;background:#4ADE80"></div></div>
+    </div>
+  </div>`;
+
+  document.getElementById('tomorrowContent').innerHTML = html;
+}
+
+function generatePrepItems(d) {
+  const items = [];
+  const foods = new Set();
+  d.meals.forEach(m => m.foods.forEach(f => {
+    if(f.includes('atún')) foods.add('atún en agua');
+    if(f.includes('pollo')) foods.add('pollo cocido o desmenuzado');
+    if(f.includes('avena')) foods.add('avena lista para cocinar');
+    if(f.includes('huevo')) foods.add('huevos listos en la nevera');
+    if(f.includes('yogurt')) foods.add('yogurt griego en nevera');
+    if(f.includes('arepa')) foods.add('arepas disponibles');
+    if(f.includes('banano')) foods.add('banano a temperatura ambiente');
+    if(f.includes('frutos secos') || f.includes('nueces') || f.includes('almendras')) foods.add('frutos secos porcionados');
+    if(f.includes('ensalada') || f.includes('lechuga') || f.includes('tomate')) foods.add('verduras lavadas y listas');
+    if(f.includes('aguacate')) foods.add('aguacate (revisar madurez)');
+  }));
+  foods.forEach(f => items.push({ text: `Tener listo: ${f}`, tag:'🥗 Alimento', color:'#4ADE80' }));
+  if(d.strength) items.push({ text:`Rutina ${d.strength} · 7–9PM en el gimnasio`, tag:'🏋️ Entreno fuerza', color:'#F87171' });
+  if(d.cardio && d.cardio.kcal>0) items.push({ text:`${d.cardio.name} · ${d.cardio.duration}`, tag:'🏃 Cardio', color:'#FCD34D' });
+  items.push({ text:'Preparar ropa de ejercicio la noche anterior', tag:'👕 Logística', color:'#60A5FA' });
+  items.push({ text:'Meta de sueño: estar en cama antes de las 10:30PM', tag:'😴 Sueño 7.5h', color:'#86EFAC' });
+  return items;
+}
+
+function togglePrep(dayIdx, i, el) {
+  let saved = loadData('prepChecks_'+dayIdx, {});
+  saved[i] = !saved[i];
+  saveData('prepChecks_'+dayIdx, saved);
+  el.classList.toggle('done');
+}
+
+// ── EXERCISE PAGE ─────────────────────────────────────────────
+function renderExercise() {
+  const d = dayData[currentDay];
+  let html = `<div style="font-size:13px;color:var(--muted);margin-bottom:16px">Mostrando ejercicios de <strong style="color:var(--text)">${d.day}</strong> — cambia el día en la pestaña Hoy.</div>`;
+
+  if(d.strength) {
+    const routine = d.strength==='A'?strengthA:strengthB;
+    html += `<div class="card" style="background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.3);margin-bottom:8px">
+      <div style="font-size:12px;color:#F87171;font-weight:700">🏋️ Rutina de Fuerza ${d.strength} · Gimnasio o casa · 7–9PM</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Descanso entre series: respetar los tiempos es clave para el resultado. Toca cada ejercicio para ver la técnica.</div>
+    </div>`;
+    routine.forEach((ex,i) => {
+      const isOpen = openExercises['s'+i];
+      html += `<div class="ex-card">
+        <div class="ex-card-main" onclick="toggleEx('s'+${i})">
+          <div class="ex-emoji">${ex.emoji}</div>
+          <div class="ex-info">
+            <div class="ex-name">${ex.name}</div>
+            <div class="ex-muscle">${ex.muscle}</div>
+          </div>
+          <div class="ex-badge">
+            <div class="ex-badge-sets">${ex.sets}</div>
+            <div class="ex-badge-rest">⏱ ${ex.rest}</div>
+          </div>
+        </div>
+        <div class="ex-detail${isOpen?' open':''}">
+          <div class="ex-detail-note">⚠️ ${ex.note}</div>
+          <div class="ex-detail-how">▶ Técnica: ${ex.how}</div>
+          <button class="timer-btn" onclick="startTimer(${parseInt(ex.rest)},event)">⏱ Iniciar descanso ${ex.rest}</button>
+        </div>
+      </div>`;
+    });
+  }
+
+  if(d.cardio && d.cardio.kcal>0) {
+    html += `<div class="ex-section-title">Cardio del día</div>
+    <div class="cardio-card" style="border:1px solid var(--border)">
+      <div class="cardio-left">${d.cardio.emoji}</div>
+      <div class="cardio-info">
+        <div class="cardio-name">${d.cardio.name}</div>
+        <div class="cardio-detail">${d.cardio.duration}</div>
+        <div class="cardio-detail" style="margin-top:4px;color:var(--dim)">${d.cardio.detail}</div>
+      </div>
+      <div class="cardio-kcal">
+        <div class="cardio-kcal-val">~${d.cardio.kcal}</div>
+        <div class="cardio-kcal-lbl">kcal</div>
+      </div>
+    </div>`;
+  }
+
+  if(!d.strength && (!d.cardio || d.cardio.kcal===0)) {
+    html += `<div class="empty"><div class="empty-icon">🧘</div><div class="empty-text">Día de descanso activo.<br>Tu cuerpo construye músculo<br>mientras descansas.</div></div>`;
+  }
+
+  // Timer box
+  html += `<div class="timer-box" id="timerBox">
+    <div class="timer-display" id="timerDisplay">01:30</div>
+    <div class="timer-lbl" id="timerLbl">Descanso entre series</div>
+    <button class="timer-btn" onclick="stopTimer()">Detener</button>
+  </div>`;
+
+  document.getElementById('exerciseContent').innerHTML = html;
+}
+
+function toggleEx(key) {
+  openExercises[key] = !openExercises[key];
+  renderExercise();
+}
+
+function startTimer(seconds, e) {
+  e.stopPropagation();
+  const box = document.getElementById('timerBox');
+  if(!box) return;
+  box.style.display='block';
+  clearInterval(timerInterval);
+  timerSeconds = seconds;
+  updateTimerDisplay();
+  timerInterval = setInterval(()=>{
+    timerSeconds--;
+    updateTimerDisplay();
+    if(timerSeconds<=0){
+      clearInterval(timerInterval);
+      document.getElementById('timerDisplay').textContent='¡YA!';
+      document.getElementById('timerLbl').textContent='Serie completada';
+      if('vibrate' in navigator) navigator.vibrate([200,100,200]);
+    }
+  },1000);
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('timerDisplay');
+  if(!el) return;
+  const m = Math.floor(timerSeconds/60);
+  const s = timerSeconds%60;
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  const box = document.getElementById('timerBox');
+  if(box) box.style.display='none';
+}
+
+// ── PROGRESS ──────────────────────────────────────────────────
+function selectMood(emoji, label, el) {
+  selectedMood = {emoji, label};
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function saveEntry() {
+  const peso = document.getElementById('inp-peso').value;
+  const cintura = document.getElementById('inp-cintura').value;
+  const energia = document.getElementById('inp-energia').value;
+  const nota = document.getElementById('inp-nota').value;
+  if(!peso && !cintura) { alert('Ingresa al menos el peso o la cintura.'); return; }
+  const entries = loadData('entries',[]);
+  const entry = {
+    date: new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}),
+    ts: Date.now(),
+    peso: peso||'—', cintura: cintura||'—',
+    energia: energia||'—',
+    mood: selectedMood ? selectedMood.emoji+' '+selectedMood.label : '—',
+    nota: nota||''
+  };
+  entries.unshift(entry);
+  saveData('entries', entries);
+  document.getElementById('inp-peso').value='';
+  document.getElementById('inp-cintura').value='';
+  document.getElementById('inp-energia').value='';
+  document.getElementById('inp-nota').value='';
+  selectedMood=null;
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
+  renderLog();
+  alert('✅ Registro guardado correctamente.');
+}
+
+function renderLog() {
+  const entries = loadData('entries',[]);
+  const container = document.getElementById('logContainer');
+  if(!container) return;
+  if(entries.length===0) {
+    container.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Aún no hay registros.<br>Empieza hoy.</div></div>`;
+    return;
+  }
+  let html = '';
+  entries.forEach(e => {
+    html += `<div class="log-entry">
+      <div class="log-date">${e.date}</div>
+      <div class="log-row"><span class="log-key">Peso</span><span class="log-val">${e.peso} kg</span></div>
+      <div class="log-row"><span class="log-key">Cintura</span><span class="log-val">${e.cintura} cm</span></div>
+      <div class="log-row"><span class="log-key">Energía</span><span class="log-val">${e.energia}/10</span></div>
+      <div class="log-row"><span class="log-key">Ánimo</span><span class="log-val">${e.mood}</span></div>
+      ${e.nota?`<div class="log-row" style="margin-top:4px"><span class="log-key" style="font-style:italic">${e.nota}</span></div>`:''}
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────
+function requestNotif() {
+  if('Notification' in window) {
+    Notification.requestPermission().then(p => {
+      if(p==='granted') {
+        document.getElementById('notifBanner').style.display='none';
+        scheduleNightReminder();
+        alert('✅ Notificaciones activadas. Recibirás un recordatorio cada noche a las 9PM para preparar el día siguiente.');
+      } else {
+        alert('Para activar notificaciones, ve a Configuración de tu navegador y permite las notificaciones para este sitio.');
+      }
+    });
+  } else {
+    alert('Tu navegador no soporta notificaciones. Puedes configurar una alarma manual a las 9PM con el recordatorio: "Preparar comida de mañana".');
+  }
+}
+
+function scheduleNightReminder() {
+  const now = new Date();
+  const target = new Date();
+  target.setHours(21,0,0,0);
+  if(now>target) target.setDate(target.getDate()+1);
+  const delay = target-now;
+  setTimeout(()=>{
+    const tmwIdx = (new Date().getDay()+1)%7;
+    const jsToMon=[6,0,1,2,3,4,5];
+    const tmw = dayData[jsToMon[tmwIdx]];
+    if(Notification.permission==='granted') {
+      new Notification('🌙 Prepara tu mañana', {
+        body:`Mañana es ${tmw.day}: ${tmw.tag}. Revisa qué necesitas tener listo en la app.`,
+        icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🥗</text></svg>'
+      });
+    }
+    scheduleNightReminder();
+  }, delay);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+workoutDone = loadData('workout',{});
+const todayJS = new Date().getDay();
+const jsToMon = [6,0,1,2,3,4,5];
+const todayMon = jsToMon[todayJS];
+currentDay = todayMon;
+document.querySelectorAll('.day-pill')[todayMon]?.classList.add('active');
+document.querySelectorAll('.day-pill').forEach((p,i)=>{ if(i!==todayMon) p.classList.remove('active'); });
+renderDay();
+
+if('Notification' in window && Notification.permission==='granted') {
+  document.getElementById('notifBanner').style.display='none';
+  scheduleNightReminder();
+}
+</script>
+</body>
+</html>
